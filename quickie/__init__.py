@@ -15,6 +15,12 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
+    from quickie.questions.routes import questions
+    from quickie.categories.routes import categories
+
+    app.register_blueprint(questions, url_prefix="/api")
+    app.register_blueprint(categories, url_prefix="/api")
+
     CORS(app, resources={r"*": {"origins": "*"}})
 
     @app.after_request
@@ -27,5 +33,8 @@ def create_app():
         )
 
         return response
+
+    with app.app_context():
+        db.create_all()
 
     return app
