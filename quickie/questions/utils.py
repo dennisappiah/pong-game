@@ -8,3 +8,13 @@ def paginator(request, data):
     formatted_data = [item.format() for item in data]
 
     return formatted_data[start:end]
+
+
+def serialize_question(question):
+    return {
+        "id": question.id,
+        "question": question.question,
+        "answer": question.answer,
+        "difficulty": question.difficulty,
+        "category_id": question.category_id,
+    }

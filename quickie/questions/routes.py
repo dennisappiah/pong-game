@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, abort
-from quickie.models import Question
-from .utils import paginator
+from quickie.models import Question, Category
+from .utils import paginator, serialize_question
 
 questions = Blueprint("questions", __name__)
 
@@ -13,18 +13,14 @@ def get_questions():
     if not len(questions_):
         abort(404)
     return jsonify(
-        {
-            "questions": paginated_questions,
-            "total_questions": len(questions_),
-            "current_category": None,
-        }
+        {"questions": paginated_questions, "total_questions": len(questions_)}
     )
 
 
 @questions.route("/questions", methods=["POST"])
 def add_question():
     """
-    - Endpoint to add a new question and to get questions based on a search term.
+    - Endpoint to add a new question and to retrieve questions based on a search term.
     - request.get_json() : Parses the incoming JSON request data and returns it.
     """
     try:
@@ -49,17 +45,46 @@ def add_question():
             question = data["question"]
             answer = data["answer"]
             difficulty = int(data["difficulty"])
-            category = int(data["category"])
+            category_id = int(data["category_id"])
 
             question = Question(
                 question=question,
                 answer=answer,
                 difficulty=difficulty,
-                category=category,
+                category_id=category_id,
             )
 
             question.insert()
 
-            return jsonify({"added": question.id, "success": True})
+            serialized_question = serialize_question(question)
+            return jsonify({"question": serialized_question})
     except:
         abort(400)
+
+
+@questions.route("/questions/<int:question_id>", methods=["DELETE"])
+def delete_question(question_id):
+    question = Question.query.get(question_id)
+    if not question:
+        abort(404)
+
+    try:
+        question.delete()
+
+        serialized_question = serialize_question(question)
+        return jsonify({"question": serialized_question})
+    except:
+        abort(422)
+
+
+@questions.route("/questions/<int:question_id>", methods=["GET"])
+def retrieve_question(question_id):
+    question = Question.query.get(question_id)
+    if not question:
+        abort(404)
+
+    try:
+        serialized_question = serialize_question(question)
+        return jsonify({"question": serialized_question})
+    except:
+        abort(422)
