@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, abort
 from quickie.models import Question, Category
-from .utils import paginator, serialize_question
+from quickie.utils import paginator
+from .utils import serialize_question
 
 questions = Blueprint("questions", __name__)
 
@@ -10,15 +11,13 @@ def get_questions():
     questions_ = Question.query.all()
     paginated_questions = paginator(request, questions_)
 
-    if not len(questions_):
-        abort(404)
     return jsonify(
         {"questions": paginated_questions, "total_questions": len(questions_)}
     )
 
 
 @questions.route("/questions", methods=["POST"])
-def add_question():
+def add_question_or_search_question():
     """
     - Endpoint to add a new question and to retrieve questions based on a search term.
     - request.get_json() : Parses the incoming JSON request data and returns it.
@@ -72,6 +71,7 @@ def delete_question(question_id):
         question.delete()
 
         serialized_question = serialize_question(question)
+
         return jsonify({"question": serialized_question})
     except:
         abort(422)
@@ -85,6 +85,30 @@ def retrieve_question(question_id):
 
     try:
         serialized_question = serialize_question(question)
+
         return jsonify({"question": serialized_question})
+    except:
+        abort(422)
+
+
+@questions.route("/questions/<int:question_id>", methods=["PUT"])
+def update_question(question_id):
+    question = Question.query.get(question_id)
+
+    if not question:
+        abort(404)
+    try:
+        data = request.get_json()
+
+        question.question = data["question"]
+        question.answer = data["answer"]
+        question.difficulty = data["difficulty"]
+        question.category_id = data["category_id"]
+
+        question.update()
+
+        serialized_question = serialize_question(question)
+
+        return jsonify({"question": serialized_question}), 200
     except:
         abort(422)
