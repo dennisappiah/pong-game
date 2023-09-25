@@ -85,3 +85,27 @@ class Leaderboard(db.Model):
             "player": self.player,
             "score": self.score,
         }
+
+
+class User(db.Model):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String(20), unique=True, nullable=False)
+    email = Column(String(20), unique=True, nullable=False)
+    password = Column(String(60), nullable=False)
+    image_file = Column(String(20), nullable=False, default="default.jpg")
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def format(self):
+        return {"id": self.id, "username": self.username, "email": self.email}

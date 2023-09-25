@@ -1,11 +1,13 @@
 from flask import Blueprint, jsonify, request, abort
 from quickie.models import Category, Question
 from .utils import serialize_category
+from quickie.auth.auth_middleware import token_required
 
 categories = Blueprint("categories", __name__)
 
 
 @categories.route("/categories", methods=["GET"])
+@token_required
 def get_categories():
     categories_ = [serialize_category(category) for category in Category.query.all()]
 

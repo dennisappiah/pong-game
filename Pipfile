@@ -10,6 +10,10 @@ itsdangerous = "*"
 sqlalchemy = "*"
 flask-migrate = "*"
 flask-cors = "*"
+jose = "*"
+pyjwt = "*"
+pillow = "*"
+flask-bcrypt = "*"
 
 [dev-packages]
 

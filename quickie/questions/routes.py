@@ -3,6 +3,8 @@ from quickie.models import Question, Category
 from quickie.utils import paginator
 from .utils import serialize_question
 
+# from quickie.auth.auth0_middleware import AuthError, requires_auth
+
 questions = Blueprint("questions", __name__)
 
 
@@ -56,7 +58,7 @@ def add_question_or_search_question():
             question.insert()
 
             serialized_question = serialize_question(question)
-            return jsonify({"question": serialized_question})
+            return jsonify({"question": serialized_question}), 201
     except:
         abort(400)
 
