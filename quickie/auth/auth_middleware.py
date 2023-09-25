@@ -10,43 +10,53 @@ class AuthError(Exception):
         self.status_code = status_code
 
 
-def token_required(f):
+def extract_token_from_header(auth_header):
+    if auth_header and auth_header.startswith("Bearer "):
+        return auth_header.split(" ")[1]
+    return None
+
+
+def login_required(f):
     @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        if "Authorization" in request.headers:
-            token = request.headers["Authorization"].split(" ")[1]
+    def wrapper(*args, **kwargs):
+        token = extract_token_from_header(request.headers.get("Authorization"))
         if not token:
             raise AuthError(
                 {
                     "code": "authorization_header_missing",
-                    "description": "Authorization header is expected.",
+                    "description": "Authorization header is missing or invalid.",
                 },
                 401,
             )
         try:
-            data = jwt.decode(
+            payload = jwt.decode(
                 token, current_app.config["SECRET_KEY"], algorithms=["HS256"]
             )
-            current_user = User.query.get(data["user_id"])
+            user_id = payload.get("user_id")
+            if user_id is None:
+                raise AuthError(
+                    {"code": "invalid_token", "description": "Invalid token format."},
+                    401,
+                )
+            current_user = User.query.get(int(user_id))
             if current_user is None:
                 raise AuthError(
                     {
-                        "code": "authorization_header_missing",
-                        "description": "Authorization header is expected.",
+                        "code": "unauthorized_user",
+                        "description": "User not authorized.",
                     },
-                    401,
+                    403,
                 )
-            if not current_user["active"]:
-                abort(403)
-        except:
+        except jwt.ExpiredSignatureError:
             raise AuthError(
-                {
-                    "code": "invalid_header",
-                    "description": "Authorization header must be bearer token.",
-                },
+                {"code": "token_expired", "description": "Token has expired."},
+                401,
+            )
+        except jwt.InvalidTokenError:
+            raise AuthError(
+                {"code": "invalid_token", "description": "Invalid token."},
                 401,
             )
         return f(current_user, *args, **kwargs)
 
-    return decorated
+    return wrapper

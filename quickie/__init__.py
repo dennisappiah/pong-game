@@ -5,6 +5,7 @@ from quickie.config import Config
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 
+
 db = SQLAlchemy()
 migrate = Migrate()
 bcrypt = Bcrypt()
