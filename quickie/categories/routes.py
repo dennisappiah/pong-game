@@ -1,15 +1,17 @@
 from flask import Blueprint, jsonify, request, abort
 from quickie.models import Category, Question
 from .utils import serialize_category
-from quickie.auth.auth_middleware import login_required
+from quickie.auth.auth_role import auth_role
+from flask_jwt_extended import jwt_required
 
 
 categories = Blueprint("categories", __name__)
 
 
 @categories.route("/categories", methods=["GET"])
-@login_required
-def get_categories(request):
+@jwt_required()
+@auth_role("admin")
+def get_categories():
     categories_ = [serialize_category(category) for category in Category.query.all()]
 
     return jsonify({"categories": categories_}), 200
@@ -47,7 +49,6 @@ def get_questions_in_category(category_id):
 
 
 @categories.route("/categories/<int:category_id>", methods=["DELETE"])
-@login_required
 def delete_category(category_id):
     category = Category.query.get(category_id)
     if not category:

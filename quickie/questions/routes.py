@@ -1,9 +1,8 @@
 from flask import Blueprint, jsonify, request, abort
-from quickie.models import Question, Category
+from quickie.models import Question
 from quickie.utils import paginator
 from .utils import serialize_question
 
-# from quickie.auth.auth0_middleware import AuthError, requires_auth
 
 questions = Blueprint("questions", __name__)
 

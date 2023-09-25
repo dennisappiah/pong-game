@@ -1,4 +1,4 @@
-from quickie import db
+from quickie import db, jwt
 from sqlalchemy import Column, String, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -87,6 +87,7 @@ class Leaderboard(db.Model):
         }
 
 
+# A user may have many roles and a role may be referenced by many users
 class User(db.Model):
     __tablename__ = "users"
 
@@ -95,6 +96,7 @@ class User(db.Model):
     email = Column(String(20), unique=True, nullable=False)
     password = Column(String(60), nullable=False)
     image_file = Column(String(20), nullable=False, default="default.jpg")
+    roles = relationship("Role", secondary="user_roles", back_populates="users")
 
     def insert(self):
         db.session.add(self)
@@ -102,3 +104,54 @@ class User(db.Model):
 
     def format(self):
         return {"id": self.id, "username": self.username, "email": self.email}
+
+    def has_role(self, role):
+        return bool(
+            Role.query.join(Role.users)
+            .filter(User.id == self.id)
+            .filter(Role.slug == role)
+            .count()
+            == 1
+        )
+
+
+@jwt.user_identity_loader
+def _user_identity_lookup(user):
+    return user.id
+
+
+@jwt.user_lookup_loader
+def user_loader_callback(jwt_identity, jwt_data):
+    identity = jwt_data["sub"]
+    user = User.query.filter_by(id=identity).first()
+    return user
+
+
+class Role(db.Model):
+    __tablename__ = "roles"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(20), nullable=False)
+    slug = Column(String(20), unique=True, nullable=False)
+    users = db.relationship("User", secondary="user_roles", back_populates="roles")
+
+    def __init__(self, name):
+        self.name = name
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+
+class UserRole(db.Model):
+    __tablename__ = "user_roles"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    role_id = Column(Integer, ForeignKey("roles.id"), primary_key=True)

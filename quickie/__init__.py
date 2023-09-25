@@ -4,11 +4,13 @@ from flask_migrate import Migrate
 from quickie.config import Config
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager
 
 
 db = SQLAlchemy()
 migrate = Migrate()
 bcrypt = Bcrypt()
+jwt = JWTManager()
 
 
 def create_app():
@@ -18,6 +20,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     bcrypt.init_app(app)
+    jwt.init_app(app)
 
     from quickie.questions.routes import questions
     from quickie.categories.routes import categories

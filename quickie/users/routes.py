@@ -35,14 +35,15 @@ def login_user():
 
         user = User.query.filter_by(email=email).first()
         if not user:
-            abort(400)
+            abort(400, "'Invalid email or password'")
 
         valid_password = bcrypt.check_password_hash(user.password, password)
         if not valid_password:
-            abort(400)
+            abort(400, "'Invalid email or password'")
 
         # generate jwt token
         payload = {
+            "sub": user.id,
             "user_id": user.id,
             "email": user.email,
         }
