@@ -18,6 +18,8 @@ def get_categories():
 
 
 @categories.route("/categories", methods=["POST"])
+@jwt_required()
+@auth_role(["admin"])
 def add_category():
     try:
         data = request.get_json()["type"]
@@ -33,6 +35,8 @@ def add_category():
 
 
 @categories.route("/categories/<int:category_id>/questions")
+@jwt_required()
+@auth_role(["admin"])
 def get_questions_in_category(category_id):
     questions = Question.query.filter_by(category_id=category_id).all()
     formatted_questions = [question.format() for question in questions]
@@ -49,6 +53,8 @@ def get_questions_in_category(category_id):
 
 
 @categories.route("/categories/<int:category_id>", methods=["DELETE"])
+@jwt_required()
+@auth_role(["admin"])
 def delete_category(category_id):
     category = Category.query.get(category_id)
     if not category:
@@ -65,6 +71,8 @@ def delete_category(category_id):
 
 
 @categories.route("/categories/<int:category_id>", methods=["PUT"])
+@jwt_required()
+@auth_role(["admin"])
 def update_category(category_id):
     category = Category.query.get(category_id)
     if not category:

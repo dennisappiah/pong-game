@@ -26,11 +26,13 @@ def create_app():
     from quickie.categories.routes import categories
     from quickie.quizzes.routes import quizzes
     from quickie.users.routes import users
+    from quickie.roles.routes import roles
 
     app.register_blueprint(questions, url_prefix="/api")
     app.register_blueprint(categories, url_prefix="/api")
     app.register_blueprint(quizzes, url_prefix="/api")
     app.register_blueprint(users, url_prefix="/api")
+    app.register_blueprint(roles, url_prefix="/api")
 
     CORS(app, resources={r"*": {"origins": "*"}})
 

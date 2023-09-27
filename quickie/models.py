@@ -138,8 +138,9 @@ class Role(db.Model):
         "Permission", secondary="role_permissions", back_populates="roles"
     )
 
-    def __init__(self, name):
+    def __init__(self, name, slug):
         self.name = name
+        self.slug = slug
 
     def insert(self):
         db.session.add(self)
@@ -158,6 +159,17 @@ class UserRole(db.Model):
 
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     role_id = Column(Integer, ForeignKey("roles.id"), primary_key=True)
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
 
 
 # A role can have many permissions, a permission can be referenced by different roles
