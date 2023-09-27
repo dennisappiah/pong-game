@@ -10,7 +10,7 @@ categories = Blueprint("categories", __name__)
 
 @categories.route("/categories", methods=["GET"])
 @jwt_required()
-@auth_role("admin")
+@auth_role(["admin"])
 def get_categories():
     categories_ = [serialize_category(category) for category in Category.query.all()]
 

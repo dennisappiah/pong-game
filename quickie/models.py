@@ -134,6 +134,9 @@ class Role(db.Model):
     name = Column(String(20), nullable=False)
     slug = Column(String(20), unique=True, nullable=False)
     users = db.relationship("User", secondary="user_roles", back_populates="roles")
+    permissions = relationship(
+        "Permission", secondary="role_permissions", back_populates="roles"
+    )
 
     def __init__(self, name):
         self.name = name
@@ -154,4 +157,23 @@ class UserRole(db.Model):
     __tablename__ = "user_roles"
 
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    role_id = Column(Integer, ForeignKey("roles.id"), primary_key=True)
+
+
+# A role can have many permissions, a permission can be referenced by different roles
+class Permission(db.Model):
+    __tablename__ = "permissions"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(20), nullable=False)
+    slug = Column(String(20), unique=True, nullable=False)
+    roles = relationship(
+        "Role", secondary="role_permissions", back_populates="permissions"
+    )
+
+
+class RolePermission(db.Model):
+    __tablename__ = "role_permissions"
+
+    permission_id = Column(Integer, ForeignKey("permissions.id"), primary_key=True)
     role_id = Column(Integer, ForeignKey("roles.id"), primary_key=True)
