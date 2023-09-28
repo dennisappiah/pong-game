@@ -1,4 +1,4 @@
-from quickie import db, jwt
+from api import db, jwt
 from sqlalchemy import Column, String, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -103,7 +103,12 @@ class User(db.Model):
         db.session.commit()
 
     def format(self):
-        return {"id": self.id, "username": self.username, "email": self.email}
+        return {
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "roles": self.roles,
+        }
 
     def has_role(self, role):
         return bool(
@@ -152,6 +157,9 @@ class Role(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+    def format(self):
+        return {"id": self.id, "name": self.name, "slug": self.slug}
 
 
 class UserRole(db.Model):

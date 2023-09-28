@@ -1,7 +1,6 @@
 from flask import Blueprint, jsonify, request, abort
-from quickie.models import Category, Question
-from .utils import serialize_category
-from quickie.auth.auth_role import auth_role
+from api.models import Category, Question
+from api.auth.auth_role import auth_role
 from flask_jwt_extended import jwt_required
 
 
@@ -12,7 +11,7 @@ categories = Blueprint("categories", __name__)
 @jwt_required()
 @auth_role(["admin"])
 def get_categories():
-    categories_ = [serialize_category(category) for category in Category.query.all()]
+    categories_ = [category.format() for category in Category.query.all()]
 
     return jsonify({"categories": categories_}), 200
 
@@ -27,7 +26,7 @@ def add_category():
         category = Category(type=data)
         category.insert()
 
-        serialized_category = serialize_category(category)
+        serialized_category = category.format()
 
         return jsonify({"category": serialized_category}), 201
     except:
@@ -39,12 +38,12 @@ def add_category():
 @auth_role(["admin"])
 def get_questions_in_category(category_id):
     questions = Question.query.filter_by(category_id=category_id).all()
-    formatted_questions = [question.format() for question in questions]
+    serialized_questions = [question.format() for question in questions]
 
     return (
         jsonify(
             {
-                "questions": formatted_questions,
+                "questions": serialized_questions,
                 "totalQuestions": len(questions),
             }
         ),
@@ -63,7 +62,7 @@ def delete_category(category_id):
     try:
         category.delete()
 
-        serialized_category = serialize_category(category)
+        serialized_category = category.format()
 
         return jsonify({"category": serialized_category}), 200
     except:
@@ -84,7 +83,7 @@ def update_category(category_id):
 
         category.update()
 
-        serialized_category = serialize_category(category)
+        serialized_category = category.format()
 
         return jsonify({"category": serialized_category}), 200
     except:

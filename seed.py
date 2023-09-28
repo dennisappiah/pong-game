@@ -1,4 +1,4 @@
-from quickie import create_app, db
+from api import create_app, db
 import os
 
 from sqlalchemy import text

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, abort, jsonify
 from sqlalchemy import desc
-from quickie.models import Leaderboard
-from quickie.utils import paginator
+from api.models import Leaderboard
+from api.utils import paginator
 
 leaderboard = Blueprint("leaderboard", __name__)
 
@@ -22,6 +22,6 @@ def post_to_leaderboard():
         board_item = Leaderboard(player=player, score=score)
         board_item.insert()
 
-        return jsonify({"added": board_item.id, "success": True})
+        return jsonify({"added": board_item.format(), "success": True})
     except:
         abort(400)

@@ -1,7 +1,6 @@
 from flask import Blueprint, jsonify, request, abort
-from quickie.models import Question
-from quickie.utils import paginator
-from .utils import serialize_question
+from api.models import Question
+from api.utils import paginator
 
 
 questions = Blueprint("questions", __name__)
@@ -29,9 +28,11 @@ def add_question_or_search_question():
 
         if search_term is not None:
             search_pattern = f"%{search_term}%"
+
             questions_ = Question.query.filter(
                 Question.question.ilike(search_pattern)
             ).all()
+
             formatted_questions = [question.format() for question in questions_]
 
             return jsonify(
@@ -56,7 +57,7 @@ def add_question_or_search_question():
 
             question.insert()
 
-            serialized_question = serialize_question(question)
+            serialized_question = question.format()
             return jsonify({"question": serialized_question}), 201
     except:
         abort(400)
@@ -71,7 +72,7 @@ def delete_question(question_id):
     try:
         question.delete()
 
-        serialized_question = serialize_question(question)
+        serialized_question = question.format()
 
         return jsonify({"question": serialized_question})
     except:
@@ -85,7 +86,7 @@ def retrieve_question(question_id):
         abort(404)
 
     try:
-        serialized_question = serialize_question(question)
+        serialized_question = question.format()
 
         return jsonify({"question": serialized_question})
     except:
@@ -108,7 +109,7 @@ def update_question(question_id):
 
         question.update()
 
-        serialized_question = serialize_question(question)
+        serialized_question = question.format()
 
         return jsonify({"question": serialized_question}), 200
     except:

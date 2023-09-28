@@ -1,15 +1,8 @@
 from flask import Blueprint, request, abort, jsonify
-from quickie.models import Role, User
-from .utils import serialize_role
-from quickie import db
+from api.models import Role, User
+from api import db
 
 roles = Blueprint("roles", __name__)
-
-"""
-@TODOS:
-- add, update, delete roles
-- add, update, and delete a role to a user
-"""
 
 
 @roles.route("/roles", methods=["POST"])
@@ -24,7 +17,7 @@ def add_role():
 
         role.insert()
 
-        role_ = serialize_role(role)
+        role_ = role.format()
 
         return jsonify({"role": role_})
     except:
@@ -42,7 +35,7 @@ def update_role(role_id):
 
         role.update()
 
-        role_ = serialize_role(role)
+        role_ = role.format()
 
         return jsonify({"role": role_})
     except:
@@ -56,7 +49,7 @@ def delete(role_id):
 
         role.delete()
 
-        role_ = serialize_role(role)
+        role_ = role.format()
 
         return jsonify({"role": role_})
     except:

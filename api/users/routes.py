@@ -1,8 +1,10 @@
 from flask import Blueprint, request, abort, jsonify, current_app
-from quickie.models import User
-from quickie import bcrypt
-from .utils import serialize_user
+from api.models import User
+from api import bcrypt
 import jwt
+from api.utils import paginator
+from api.auth.auth_role import auth_role
+from flask_jwt_extended import jwt_required
 
 users = Blueprint("users", __name__)
 
@@ -20,7 +22,7 @@ def register_user():
 
         user.insert()
 
-        serialized_user = serialize_user(user)
+        serialized_user = user.format()
         return jsonify({"user": serialized_user}), 201
     except:
         abort(400)
@@ -46,6 +48,7 @@ def login_user():
             "sub": user.id,
             "user_id": user.id,
             "email": user.email,
+            "roles": user.roles,
         }
 
         jwt_token = jwt.encode(
@@ -55,3 +58,17 @@ def login_user():
         return jsonify({"token": jwt_token})
     except:
         abort(400)
+
+
+@users.route("/users")
+@jwt_required()
+@auth_role(["super_admin"])
+def get_users():
+    try:
+        users_ = User.query.all()
+
+        paginated_users = paginator(request, users_)
+
+        return jsonify({"users": paginated_users, "total_users": len(users_)})
+    except:
+        abort(422)

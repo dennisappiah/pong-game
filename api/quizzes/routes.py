@@ -1,5 +1,5 @@
 from flask import Blueprint, request, abort, jsonify
-from quickie.models import Question
+from api.models import Question
 import random
 
 quizzes = Blueprint("quizzes", __name__)

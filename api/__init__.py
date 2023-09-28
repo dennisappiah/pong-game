@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from quickie.config import Config
+from api.config import Config
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
@@ -22,11 +22,11 @@ def create_app():
     bcrypt.init_app(app)
     jwt.init_app(app)
 
-    from quickie.questions.routes import questions
-    from quickie.categories.routes import categories
-    from quickie.quizzes.routes import quizzes
-    from quickie.users.routes import users
-    from quickie.roles.routes import roles
+    from api.questions.routes import questions
+    from api.categories.routes import categories
+    from api.quizzes.routes import quizzes
+    from api.users.routes import users
+    from api.roles.routes import roles
 
     app.register_blueprint(questions, url_prefix="/api")
     app.register_blueprint(categories, url_prefix="/api")
