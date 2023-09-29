@@ -2,11 +2,15 @@ from flask import Blueprint, request, abort, jsonify
 from sqlalchemy import desc
 from api.models import Leaderboard
 from api.utils import paginator
+from api.auth.auth_role import auth_role
+from flask_jwt_extended import jwt_required
 
 leaderboard = Blueprint("leaderboard", __name__)
 
 
 @leaderboard.route("/leaderboard")
+@jwt_required()
+@auth_role(["admin", "super-admin"])
 def get_leaderboard_scores():
     results = Leaderboard.query.order_by(desc(Leaderboard.score)).all()
     paginated_results = paginator(request, results)
@@ -14,6 +18,8 @@ def get_leaderboard_scores():
 
 
 @leaderboard.route("/leaderboard", methods=["POST"])
+@jwt_required()
+@auth_role(["admin", "super-admin"])
 def post_to_leaderboard():
     try:
         player = request.get_json()["player"]

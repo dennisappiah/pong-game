@@ -1,11 +1,15 @@
 from flask import Blueprint, request, abort, jsonify
 from api.models import Role, User
 from api import db
+from api.auth.auth_role import auth_role
+from flask_jwt_extended import jwt_required
 
 roles = Blueprint("roles", __name__)
 
 
 @roles.route("/roles", methods=["POST"])
+@jwt_required()
+@auth_role(["super-admin"])
 def add_role():
     data = request.get_json()
 
@@ -25,6 +29,8 @@ def add_role():
 
 
 @roles.route("/roles/<int:role_id>", methods=["PUT"])
+@jwt_required()
+@auth_role(["super-admin"])
 def update_role(role_id):
     data = request.get_json()
     try:
@@ -43,6 +49,8 @@ def update_role(role_id):
 
 
 @roles.route("/roles/<int:role_id>", methods=["DELETE"])
+@jwt_required()
+@auth_role(["super-admin"])
 def delete(role_id):
     try:
         role = Role.query.get(role_id)
@@ -57,6 +65,8 @@ def delete(role_id):
 
 
 @roles.route("/assign-role/<int:user_id>/<string:role_slug>", methods=["POST"])
+@jwt_required()
+@auth_role(["super-admin"])
 def assign_role(user_id, role_slug):
     try:
         user = User.query.get(user_id)

@@ -1,11 +1,13 @@
 from flask import Blueprint, request, abort, jsonify
 from api.models import Question
 import random
+from flask_jwt_extended import jwt_required
 
 quizzes = Blueprint("quizzes", __name__)
 
 
 @quizzes.route("/quizzes", methods=["POST"])
+@jwt_required()
 def get_question_for_quiz():
     """
     Endpoint to get questions to play the quiz.

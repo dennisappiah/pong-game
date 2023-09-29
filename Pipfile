@@ -16,6 +16,7 @@ flask-bcrypt = "*"
 flask-jwt-extended = "*"
 python-dotenv = "*"
 
+
 [dev-packages]
 
 [requires]

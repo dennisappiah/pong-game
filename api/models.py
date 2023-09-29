@@ -159,7 +159,12 @@ class Role(db.Model):
         db.session.commit()
 
     def format(self):
-        return {"id": self.id, "name": self.name, "slug": self.slug}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "slug": self.slug,
+            "permissions": self.permissions,
+        }
 
 
 class UserRole(db.Model):

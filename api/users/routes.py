@@ -62,7 +62,7 @@ def login_user():
 
 @users.route("/users")
 @jwt_required()
-@auth_role(["super_admin"])
+@auth_role(["admin", "super-admin"])
 def get_users():
     try:
         users_ = User.query.all()
