@@ -1,7 +1,8 @@
-from flask import Blueprint, jsonify, request, abort
+from flask import Blueprint, jsonify, request
 from api.models import Question
 from api.utils import paginator
 from flask_jwt_extended import jwt_required
+from api.utils import json_failure, json_success, json_404
 
 questions = Blueprint("questions", __name__)
 
@@ -9,22 +10,28 @@ questions = Blueprint("questions", __name__)
 @questions.route("/questions", methods=["GET"])
 @jwt_required()
 def get_questions():
-    questions_ = Question.query.all()
-    paginated_questions = paginator(request, questions_)
+    try:
+        questions_ = Question.query.all()
+        paginated_questions = paginator(request, questions_)
 
-    return jsonify(
-        {"questions": paginated_questions, "total_questions": len(questions_)}
-    )
+        return (
+            json_success(
+                {"questions": paginated_questions, "total_questions": len(questions_)}
+            ),
+        )
+
+    except Exception as ex:
+        return json_failure({"exception": str(ex)})
 
 
 @questions.route("/questions", methods=["POST"])
 @jwt_required()
 def add_question_or_search_question():
-    """
-    - Endpoint to add a new question and to retrieve questions based on a search term.
-    - request.get_json() : Parses the incoming JSON request data and returns it.
-    """
     try:
+        """
+        - Endpoint to add a new question and to retrieve questions based on a search term.
+        - request.get_json() : Parses the incoming JSON request data and returns it.
+        """
         data = request.get_json()
         search_term = data.get("searchTerm", None)
 
@@ -37,7 +44,7 @@ def add_question_or_search_question():
 
             formatted_questions = [question.format() for question in questions_]
 
-            return jsonify(
+            return json_success(
                 {
                     "questions": formatted_questions,
                     "totalQuestions": len(questions_),
@@ -61,50 +68,60 @@ def add_question_or_search_question():
 
             serialized_question = question.format()
             return jsonify({"question": serialized_question}), 201
-    except:
-        abort(400)
+
+    except Exception as ex:
+        return json_failure({"exception": str(ex)})
 
 
 @questions.route("/questions/<int:question_id>", methods=["DELETE"])
 @jwt_required()
 def delete_question(question_id):
-    question = Question.query.get(question_id)
-    if not question:
-        abort(404)
-
     try:
+        question = Question.query.get(question_id)
+        if not question:
+            return json_404(
+                {"message": "The question with the given ID was not found!"}
+            )
+
         question.delete()
 
         serialized_question = question.format()
 
-        return jsonify({"question": serialized_question})
-    except:
-        abort(422)
+        return json_success({"question": serialized_question})
+
+    except Exception as ex:
+        return json_failure({"exception": str(ex)})
 
 
 @questions.route("/questions/<int:question_id>", methods=["GET"])
 @jwt_required()
 def retrieve_question(question_id):
-    question = Question.query.get(question_id)
-    if not question:
-        abort(404)
-
     try:
+        question = Question.query.get(question_id)
+        if not question:
+            return json_404(
+                {"message": "The question with the given ID was not found!"}
+            )
+
         serialized_question = question.format()
 
-        return jsonify({"question": serialized_question})
-    except:
-        abort(422)
+        return json_success({"question": serialized_question})
+
+    except Exception as ex:
+        return json_failure({"exception": str(ex)})
 
 
 @questions.route("/questions/<int:question_id>", methods=["PUT"])
 @jwt_required()
 def update_question(question_id):
-    question = Question.query.get(question_id)
-
-    if not question:
-        abort(404)
     try:
+        question = Question.query.get(question_id)
+
+        if not question:
+            return json_404(
+                {"message": "The question with the given ID was not found!"}
+            )
+
         data = request.get_json()
 
         question.question = data["question"]
@@ -116,6 +133,7 @@ def update_question(question_id):
 
         serialized_question = question.format()
 
-        return jsonify({"question": serialized_question}), 200
-    except:
-        abort(422)
+        return json_success({"question": serialized_question})
+
+    except Exception as ex:
+        return json_failure({"exception": str(ex)})

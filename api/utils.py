@@ -1,3 +1,5 @@
+from flask import jsonify
+
 QUESTIONS_PER_PAGE = 5
 
 
@@ -8,3 +10,21 @@ def paginator(request, data):
     formatted_data = [item.format() for item in data]
 
     return formatted_data[start:end]
+
+
+def json_failure(fields=None):
+    if fields is None:
+        fields = {}
+    return jsonify({"success": False, **fields})
+
+
+def json_success(fields=None):
+    if fields is None:
+        fields = {}
+    return jsonify({"success": True, **fields}), 200
+
+
+def json_404(fields=None):
+    if fields is None:
+        fields = {}
+    return jsonify({"success": True, **fields}), 404

@@ -1,25 +1,29 @@
-from flask import Blueprint, request, abort, jsonify
+from flask import Blueprint, request
 from sqlalchemy import desc
 from api.models import Leaderboard
 from api.utils import paginator
-from api.auth.auth_role import auth_role
 from flask_jwt_extended import jwt_required
+from api.utils import json_failure, json_success
 
 leaderboard = Blueprint("leaderboard", __name__)
 
 
 @leaderboard.route("/leaderboard")
 @jwt_required()
-@auth_role(["admin", "super-admin"])
 def get_leaderboard_scores():
-    results = Leaderboard.query.order_by(desc(Leaderboard.score)).all()
-    paginated_results = paginator(request, results)
-    return jsonify({"results": paginated_results, "totalResults": len(results)})
+    try:
+        results = Leaderboard.query.order_by(desc(Leaderboard.score)).all()
+        paginated_results = paginator(request, results)
+        return json_success(
+            {"results": paginated_results, "totalResults": len(results)}
+        )
+
+    except Exception as ex:
+        return json_failure({"exception": str(ex)})
 
 
 @leaderboard.route("/leaderboard", methods=["POST"])
 @jwt_required()
-@auth_role(["admin", "super-admin"])
 def post_to_leaderboard():
     try:
         player = request.get_json()["player"]
@@ -28,6 +32,7 @@ def post_to_leaderboard():
         board_item = Leaderboard(player=player, score=score)
         board_item.insert()
 
-        return jsonify({"added": board_item.format(), "success": True})
-    except:
-        abort(400)
+        return json_success({"board_item": board_item.format()})
+
+    except Exception as ex:
+        return json_failure({"exception": str(ex)})

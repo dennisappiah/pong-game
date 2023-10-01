@@ -107,7 +107,7 @@ class User(db.Model):
             "id": self.id,
             "username": self.username,
             "email": self.email,
-            "roles": self.roles,
+            "roles": [role.name for role in self.roles],
         }
 
     def has_role(self, role):
@@ -118,6 +118,14 @@ class User(db.Model):
             .count()
             == 1
         )
+
+    def has_permission(self, permission_slug):
+        user_roles = self.roles
+
+        for role in user_roles:
+            if permission_slug in [p.slug for p in role.permissions]:
+                return True
+        return False
 
 
 @jwt.user_identity_loader
@@ -195,6 +203,22 @@ class Permission(db.Model):
     roles = relationship(
         "Role", secondary="role_permissions", back_populates="permissions"
     )
+
+    def __init__(self, name, slug):
+        self.name = name
+        self.slug = slug
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def format(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "slug": self.slug,
+            "roles": self.roles,
+        }
 
 
 class RolePermission(db.Model):

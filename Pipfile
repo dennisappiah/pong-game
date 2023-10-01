@@ -16,8 +16,9 @@ flask-bcrypt = "*"
 flask-jwt-extended = "*"
 python-dotenv = "*"
 
-
 [dev-packages]
+pytest = "*"
+pytest-flask = "*"
 
 [requires]
 python_version = "3.9"
