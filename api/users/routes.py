@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app, make_response
-from api.models import User
-from api import bcrypt
+from api.models import User, Role
+from api import bcrypt, db
 import jwt
 from api.auth.auth import auth_role_permission
 from flask_jwt_extended import jwt_required
@@ -10,7 +10,7 @@ users = Blueprint("users", __name__)
 
 
 @users.route("/users/register", methods=["POST"])
-def register_user():
+def register_users_and_assign_roles():
     try:
         data = request.get_json()
 
@@ -27,12 +27,25 @@ def register_user():
         user = User(username=username, email=email, password=password)
         user.password = bcrypt.generate_password_hash(user.password).decode("utf-8")
 
-        user.insert()
+        # Add the user to the session before assigning roles
+        db.session.add(user)
+
+        if data.get("is_staff"):
+            admin_role = Role.query.filter_by(slug="admin").first()
+            user.roles.append(admin_role)
+            user.is_staff = True
+        if data.get("is_super_admin"):
+            super_admin_role = Role.query.filter_by(slug="super-admin").first()
+            user.roles.append(super_admin_role)
+            user.is_super_admin = True
+
+        db.session.commit()
 
         serialized_user = user.format()
         return jsonify({"user": serialized_user}), 201
 
     except Exception as ex:
+        db.session.rollback()
         return json_failure({"exception": str(ex)})
 
 
@@ -60,6 +73,9 @@ def login_user():
             "sub": user.id,
             "user_id": user.id,
             "email": user.email,
+            "is_active": user.is_active,
+            "is_staff": user.is_staff,
+            "is_super_admin": user.is_super_admin,
             "roles": roles,
         }
 

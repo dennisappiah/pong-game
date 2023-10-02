@@ -1,7 +1,5 @@
 from flask import Blueprint, request, jsonify
-from api.models import Role, User, Permission
-from api import db
-from api.auth.auth import auth_role_permission
+from api.models import Role, Permission
 from api.utils import json_failure, json_success
 from flask_jwt_extended import jwt_required
 
@@ -9,63 +7,37 @@ roles = Blueprint("roles", __name__)
 
 
 @roles.route("/roles", methods=["POST"])
-def add_role():
+def add_role_and_assign_permissions():
     try:
         data = request.get_json()
 
         name_ = data["name"]
         slug_ = data["slug"]
+        permissions_slugs = data.get("permissions", [])
 
         role = Role(name=name_, slug=slug_)
 
+        # Retrieve permissions based on permission slugs
+        permissions = Permission.query.filter(
+            Permission.slug.in_(permissions_slugs)
+        ).all()
+
+        # Assign the retrieved permissions to the role
+        role.permissions.extend(permissions)
+
         role.insert()
 
-        role_ = role.format()
+        role_data = {
+            "id": role.id,
+            "name": role.name,
+            "slug": role.slug,
+            "permissions": [permission.slug for permission in permissions],
+        }
 
-        return jsonify({"role": role_}), 201
+        return jsonify({"role": role_data}), 201
 
     except Exception as ex:
         return json_failure({"exception": str(ex)})
-
-
-@roles.route("/assign-role/<int:user_id>/<string:role_slug>", methods=["POST"])
-def assign_role(user_id, role_slug):
-    try:
-        user = User.query.get(user_id)
-        role = Role.query.filter_by(slug=role_slug).first()
-
-        if user is None or role is None:
-            return jsonify({"message": "User or role not found"}), 404
-
-        user.roles.append(role)
-        db.session.commit()
-
-        return jsonify({"message": "Role assigned successfully"}), 200
-    except Exception as ex:
-        db.session.rollback()
-        return jsonify({"message": "An error occurred"}), 422
-
-
-@roles.route(
-    "/assign-permission/<int:role_id>/<string:permission_slug>", methods=["POST"]
-)
-def assign_permission(role_id, permission_slug):
-    try:
-        role = Role.query.get(role_id)
-
-        permission = Permission.query.filter_by(slug=permission_slug).first()
-
-        if role is None or permission is None:
-            return jsonify({"message": "role or permission not found"}), 404
-
-        role.permissions.append(permission)
-
-        db.session.commit()
-
-        return jsonify({"message": "Permissions assigned successfully"}), 200
-    except:
-        db.session.rollback()
-        return jsonify({"message": "An error occurred"}), 422
 
 
 @roles.route("/roles/<int:role_id>", methods=["PUT"])
@@ -78,6 +50,7 @@ def update_role(role_id):
 
         role.name = data["name"]
         role.slug = data["slug"]
+        role.permissions = data["permissions"]
 
         role.update()
 

@@ -106,6 +106,9 @@ class User(db.Model):
     email = db.Column(db.String(20), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
     image_file = db.Column(db.String(20), nullable=False, default="default.jpg")
+    is_staff = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=True)
+    is_super_admin = db.Column(db.Boolean, default=False)
     roles = db.relationship("Role", secondary="user_roles", back_populates="users")
 
     def insert(self):
@@ -117,6 +120,9 @@ class User(db.Model):
             "id": self.id,
             "username": self.username,
             "email": self.email,
+            "is_active": self.is_active,
+            "is_staff": self.is_staff,
+            "is_super_admin": self.is_super_admin,
             "roles": [role.name for role in self.roles],
         }
 

@@ -41,7 +41,7 @@ def create_app():
     @app.errorhandler(404)
     def not_found(error):
         return (
-            jsonify({"error": 404, "message": "The requested resource was not found."}),
+            jsonify({"error": 404, "message": "The requested resource was not found"}),
             404,
         )
 

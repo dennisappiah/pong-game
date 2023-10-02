@@ -22,8 +22,7 @@ def get_categories():
 
 
 @categories.route("/categories", methods=["POST"])
-# @jwt_required()
-# @auth_role_permission("admin", "add_category")
+@jwt_required()
 def add_category():
     try:
         data = request.get_json()["type"]

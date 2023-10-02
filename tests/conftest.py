@@ -1,6 +1,7 @@
 import pytest
 from api import create_app, db
 from pathlib import Path
+from api.models import User
 
 app = create_app()
 
@@ -24,3 +25,15 @@ def client():
     # tear-down
     with app.app_context():
         db.drop_all()
+
+
+@pytest.fixture
+def authenticate(client):
+    def do_authenticate(is_staff=False):
+        user = User(id=1, username="test_user", is_staff=is_staff)
+
+        with client.session_transaction() as session:
+            session["user_id"] = user.id
+        return user
+
+    return do_authenticate
