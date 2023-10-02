@@ -1,3 +1,4 @@
-class TestCreateCategory:
+class TestGetCategories:
     def test_if_get_categories_returns_200(self, client):
-        assert 2 + 2 == 4
+        response = client.get("api/categories")  # act
+        assert response.status_code == 200  # assert

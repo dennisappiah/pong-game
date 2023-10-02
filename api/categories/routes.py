@@ -22,8 +22,8 @@ def get_categories():
 
 
 @categories.route("/categories", methods=["POST"])
-@jwt_required()
-@auth_role_permission("admin", "add_category")
+# @jwt_required()
+# @auth_role_permission("admin", "add_category")
 def add_category():
     try:
         data = request.get_json()["type"]
@@ -40,7 +40,7 @@ def add_category():
 
 
 @categories.route("/categories/<int:category_id>/questions")
-@jwt_required()
+# @jwt_required()
 def get_questions_in_category(category_id):
     try:
         questions = Question.query.filter_by(category_id=category_id).all()
@@ -78,7 +78,7 @@ def delete_category(category_id):
 
 
 @categories.route("/categories/<int:category_id>", methods=["PUT"])
-@jwt_required()
+# @jwt_required()
 def update_category(category_id):
     try:
         category = Category.query.get(category_id)

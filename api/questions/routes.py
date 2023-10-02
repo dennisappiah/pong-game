@@ -8,16 +8,14 @@ questions = Blueprint("questions", __name__)
 
 
 @questions.route("/questions", methods=["GET"])
-@jwt_required()
+# @jwt_required()
 def get_questions():
     try:
         questions_ = Question.query.all()
         paginated_questions = paginator(request, questions_)
 
-        return (
-            json_success(
-                {"questions": paginated_questions, "total_questions": len(questions_)}
-            ),
+        return json_success(
+            {"questions": paginated_questions, "total_questions": len(questions_)}
         )
 
     except Exception as ex:
@@ -25,7 +23,7 @@ def get_questions():
 
 
 @questions.route("/questions", methods=["POST"])
-@jwt_required()
+# @jwt_required()
 def add_question_or_search_question():
     try:
         """
@@ -74,7 +72,7 @@ def add_question_or_search_question():
 
 
 @questions.route("/questions/<int:question_id>", methods=["DELETE"])
-@jwt_required()
+# @jwt_required()
 def delete_question(question_id):
     try:
         question = Question.query.get(question_id)
@@ -94,7 +92,7 @@ def delete_question(question_id):
 
 
 @questions.route("/questions/<int:question_id>", methods=["GET"])
-@jwt_required()
+# @jwt_required()
 def retrieve_question(question_id):
     try:
         question = Question.query.get(question_id)
@@ -112,7 +110,7 @@ def retrieve_question(question_id):
 
 
 @questions.route("/questions/<int:question_id>", methods=["PUT"])
-@jwt_required()
+# @jwt_required()
 def update_question(question_id):
     try:
         question = Question.query.get(question_id)
