@@ -1,14 +1,24 @@
 from api import db, jwt
-from sqlalchemy import Column, String, Integer, ForeignKey
-from sqlalchemy.orm import relationship
+
+
+@jwt.user_identity_loader
+def _user_identity_lookup(user):
+    return user.id
+
+
+@jwt.user_lookup_loader
+def user_loader_callback(jwt_identity, jwt_data):
+    identity = jwt_data["sub"]
+    user = User.query.filter_by(id=identity).first()
+    return user
 
 
 class Category(db.Model):
     __tablename__ = "categories"
 
-    id = Column(Integer, primary_key=True)
-    type = Column(String(255))
-    questions = relationship("Question", backref="category", lazy=True)
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(255))
+    questions = db.relationship("Question", backref="category", lazy=True)
 
     def __init__(self, type):
         self.type = type
@@ -31,11 +41,11 @@ class Category(db.Model):
 class Question(db.Model):
     __tablename__ = "questions"
 
-    id = Column(Integer, primary_key=True)
-    question = Column(String)
-    answer = Column(String)
-    difficulty = Column(Integer)
-    category_id = Column(Integer, ForeignKey("categories.id"))
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.String)
+    answer = db.Column(db.String)
+    difficulty = db.Column(db.Integer)
+    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"))
 
     def __init__(self, question, answer, category_id, difficulty):
         self.question = question
@@ -67,9 +77,9 @@ class Question(db.Model):
 class Leaderboard(db.Model):
     __tablename__ = "leaderboard"
 
-    id = Column(Integer, primary_key=True)
-    player = Column(String)
-    score = Column(Integer)
+    id = db.Column(db.Integer, primary_key=True)
+    player = db.Column(db.String)
+    score = db.Column(db.Integer)
 
     def __init__(self, player, score):
         self.player = player
@@ -91,12 +101,12 @@ class Leaderboard(db.Model):
 class User(db.Model):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True)
-    username = Column(String(20), unique=True, nullable=False)
-    email = Column(String(20), unique=True, nullable=False)
-    password = Column(String(60), nullable=False)
-    image_file = Column(String(20), nullable=False, default="default.jpg")
-    roles = relationship("Role", secondary="user_roles", back_populates="users")
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(20), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
+    image_file = db.Column(db.String(20), nullable=False, default="default.jpg")
+    roles = db.relationship("Role", secondary="user_roles", back_populates="users")
 
     def insert(self):
         db.session.add(self)
@@ -128,26 +138,14 @@ class User(db.Model):
         return False
 
 
-@jwt.user_identity_loader
-def _user_identity_lookup(user):
-    return user.id
-
-
-@jwt.user_lookup_loader
-def user_loader_callback(jwt_identity, jwt_data):
-    identity = jwt_data["sub"]
-    user = User.query.filter_by(id=identity).first()
-    return user
-
-
 class Role(db.Model):
     __tablename__ = "roles"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(20), nullable=False)
-    slug = Column(String(20), unique=True, nullable=False)
-    users = db.relationship("User", secondary="user_roles", back_populates="roles")
-    permissions = relationship(
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), nullable=False)
+    slug = db.Column(db.String(20), unique=True, nullable=False)
+    users = db.db.relationship("User", secondary="user_roles", back_populates="roles")
+    permissions = db.relationship(
         "Permission", secondary="role_permissions", back_populates="roles"
     )
 
@@ -178,8 +176,8 @@ class Role(db.Model):
 class UserRole(db.Model):
     __tablename__ = "user_roles"
 
-    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
-    role_id = Column(Integer, ForeignKey("roles.id"), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
+    role_id = db.Column(db.Integer, db.ForeignKey("roles.id"), primary_key=True)
 
     def insert(self):
         db.session.add(self)
@@ -197,10 +195,10 @@ class UserRole(db.Model):
 class Permission(db.Model):
     __tablename__ = "permissions"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(20), nullable=False)
-    slug = Column(String(20), unique=True, nullable=False)
-    roles = relationship(
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), nullable=False)
+    slug = db.Column(db.String(20), unique=True, nullable=False)
+    roles = db.relationship(
         "Role", secondary="role_permissions", back_populates="permissions"
     )
 
@@ -224,5 +222,7 @@ class Permission(db.Model):
 class RolePermission(db.Model):
     __tablename__ = "role_permissions"
 
-    permission_id = Column(Integer, ForeignKey("permissions.id"), primary_key=True)
-    role_id = Column(Integer, ForeignKey("roles.id"), primary_key=True)
+    permission_id = db.Column(
+        db.Integer, db.ForeignKey("permissions.id"), primary_key=True
+    )
+    role_id = db.Column(db.Integer, db.ForeignKey("roles.id"), primary_key=True)

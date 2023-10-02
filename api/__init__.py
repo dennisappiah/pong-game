@@ -1,16 +1,7 @@
 from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 from api.config import Config
+from api.extensions import db, migrate, bcrypt, jwt
 from flask_cors import CORS
-from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager
-
-
-db = SQLAlchemy()
-migrate = Migrate()
-bcrypt = Bcrypt()
-jwt = JWTManager()
 
 
 def create_app():
@@ -55,21 +46,14 @@ def create_app():
         )
 
     @app.errorhandler(422)
-    def unprocessable(error):
+    def un_processable(error):
         return (
-            jsonify({"error": 422, "message": "Your request was unprocessable."}),
+            jsonify({"error": 422, "message": "Your request was un-processable."}),
             404,
         )
-
-    @app.errorhandler(400)
-    def bad_request(error):
-        return jsonify({"error": 400, "message": "Bad request."}), 400
 
     @app.errorhandler(500)
     def internal_server_error(error):
         return jsonify({"error": 500, "message": "Internal server error."})
-
-    with app.app_context():
-        db.create_all()
 
     return app

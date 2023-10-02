@@ -9,8 +9,8 @@ categories = Blueprint("categories", __name__)
 
 
 @categories.route("/categories", methods=["GET"])
-@jwt_required()
-@auth_role_permission("admin", "view_category")
+# @jwt_required()
+# @auth_role_permission("admin", "view_category")
 def get_categories():
     try:
         categories_ = [category.format() for category in Category.query.all()]
