@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify
-from api.models import Category, Question
-from api.auth.auth import auth_role_permission
 from flask_jwt_extended import jwt_required
+from api.models import Category, Question
 from api.utils import json_failure, json_success, json_404
 
 
@@ -9,8 +8,7 @@ categories = Blueprint("categories", __name__)
 
 
 @categories.route("/categories", methods=["GET"])
-# @jwt_required()
-# @auth_role_permission("admin", "view_category")
+@jwt_required()
 def get_categories():
     try:
         categories_ = [category.format() for category in Category.query.all()]
@@ -18,6 +16,7 @@ def get_categories():
         return json_success({"categories": categories_})
 
     except Exception as ex:
+        print("error", str(ex))
         return json_failure({"exception": str(ex)})
 
 
@@ -39,7 +38,7 @@ def add_category():
 
 
 @categories.route("/categories/<int:category_id>/questions")
-# @jwt_required()
+@jwt_required()
 def get_questions_in_category(category_id):
     try:
         questions = Question.query.filter_by(category_id=category_id).all()
@@ -57,7 +56,7 @@ def get_questions_in_category(category_id):
 
 
 @categories.route("/categories/<int:category_id>", methods=["DELETE"])
-# @jwt_required()
+@jwt_required()
 def delete_category(category_id):
     try:
         category = Category.query.get(category_id)
@@ -77,7 +76,7 @@ def delete_category(category_id):
 
 
 @categories.route("/categories/<int:category_id>", methods=["PUT"])
-# @jwt_required()
+@jwt_required()
 def update_category(category_id):
     try:
         category = Category.query.get(category_id)
@@ -90,6 +89,24 @@ def update_category(category_id):
         category.type = data
 
         category.update()
+
+        serialized_category = category.format()
+
+        return json_success({"category": serialized_category})
+
+    except Exception as ex:
+        return json_failure({"exception": str(ex)})
+
+
+@categories.route("/categories/<int:category_id>", methods=["GET"])
+@jwt_required()
+def get_category(category_id):
+    try:
+        category = Category.query.get(category_id)
+        if not category:
+            return json_404(
+                {"message": "The category with the given ID was not found!"}
+            )
 
         serialized_category = category.format()
 

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from api.models import Role, Permission
 from api.utils import json_failure, json_success
-from flask_jwt_extended import jwt_required
+
 
 roles = Blueprint("roles", __name__)
 
@@ -41,7 +41,6 @@ def add_role_and_assign_permissions():
 
 
 @roles.route("/roles/<int:role_id>", methods=["PUT"])
-@jwt_required()
 def update_role(role_id):
     try:
         data = request.get_json()

@@ -1,9 +1,10 @@
 import pytest
 from api import create_app, db
 from pathlib import Path
-from api.models import User
+import json
 
 app = create_app()
+
 
 TEST_DB = "test.db"
 
@@ -29,11 +30,33 @@ def client():
 
 @pytest.fixture
 def authenticate(client):
-    def do_authenticate(is_staff=False):
-        user = User(id=1, username="test_user", is_staff=is_staff)
+    def do_authenticate():
+        resp_register = client.post(
+            "api/users/register",
+            data=json.dumps(
+                dict(
+                    username="joe",
+                    email="joe@gmail.com",
+                    password="123456",
+                    is_staff=True,
+                    is_super_admin=True,
+                )
+            ),
+            content_type="application/json",
+        )
 
-        with client.session_transaction() as session:
-            session["user_id"] = user.id
-        return user
+        response = client.get(
+            "api/users/me",
+            headers=dict(
+                Authorization="Bearer "
+                + json.loads(resp_register.data.decode())["auth_token"]
+            ),
+        )
+
+        data = json.loads(response.data.decode())
+
+        assert ["data"] is not None
+        assert response.status_code == 200
+        assert data["status"] == "success"
 
     return do_authenticate

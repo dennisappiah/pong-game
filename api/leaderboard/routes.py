@@ -1,9 +1,10 @@
 from flask import Blueprint, request
+from flask_jwt_extended import jwt_required
 from sqlalchemy import desc
 from api.models import Leaderboard
 from api.utils import paginator
-from flask_jwt_extended import jwt_required
 from api.utils import json_failure, json_success
+
 
 leaderboard = Blueprint("leaderboard", __name__)
 
@@ -23,7 +24,6 @@ def get_leaderboard_scores():
 
 
 @leaderboard.route("/leaderboard", methods=["POST"])
-@jwt_required()
 def post_to_leaderboard():
     try:
         player = request.get_json()["player"]

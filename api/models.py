@@ -2,15 +2,14 @@ from api import db, jwt
 
 
 @jwt.user_identity_loader
-def _user_identity_lookup(user):
+def user_identity_lookup(user):
     return user.id
 
 
 @jwt.user_lookup_loader
-def user_loader_callback(jwt_identity, jwt_data):
+def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
-    user = User.query.filter_by(id=identity).first()
-    return user
+    return User.query.filter_by(id=identity).one_or_none()
 
 
 class Category(db.Model):
