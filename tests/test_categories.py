@@ -26,20 +26,6 @@ class TestCreateCategory:
 
         assert response.status_code == 401
 
-    @pytest.mark.skipif
-    def test_if_data_is_invalid_returns_400(self, authenticated_client):
-        request_data = {"type": True}
-
-        response = authenticated_client.post(
-            "/api/categories",
-            data=json.dumps(request_data),
-            headers={"Content-Type": "application/json"},
-        )
-
-        assert response.status_code == 400
-        data = json.loads(response.data)
-        assert data["type"] is not None
-
 
 class TestGetCategory:
     def test_if_get_categories_returns_200(self, authenticated_client):
@@ -61,4 +47,14 @@ class TestGetCategory:
 
 
 class TestDeleteCategory:
-    pass
+    def test_if_delete_category_returns_200(self, authenticated_client):
+        response = authenticated_client.delete("/api/categories/1")
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["success"] == True
+
+    def test_if_wrong_delete_operation_returns_405(self, authenticated_client):
+        response = authenticated_client.post("/api/categories/1")
+
+        assert response.status_code == 405

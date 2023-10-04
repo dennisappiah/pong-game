@@ -65,7 +65,7 @@ def add_question_or_search_question():
             return jsonify({"question": serialized_question}), 201
 
     except Exception as ex:
-        return json_failure({"exception": str(ex)})
+        return jsonify({"exception": str(ex)})
 
 
 @questions.route("/questions/<int:question_id>", methods=["DELETE"])

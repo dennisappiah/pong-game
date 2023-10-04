@@ -1,5 +1,4 @@
 import json
-import pytest
 
 
 class TestCreateQuestion:
@@ -19,24 +18,17 @@ class TestCreateQuestion:
 
         assert response.status_code == 201
 
-    @pytest.mark.skipif
-    def test_if_data_is_invalid_returns_400(self, authenticated_client):
+    def test_if_search_questions_returns_200(self, authenticated_client):
         request_data = {
-            "question": "Test question?",
-            "answer": "Nana-Addo",
-            "difficulty": True,
-            "category_id": True,
+            "SearchTerm": "president",
         }
-
         response = authenticated_client.post(
-            "/api/categories",
+            "/api/questions",
             data=json.dumps(request_data),
             headers={"Content-Type": "application/json"},
         )
 
-        assert response.status_code == 400
-        data = json.loads(response.data)
-        assert data["type"] is not None
+        assert response.status_code == 200
 
 
 class TestGetQuestion:

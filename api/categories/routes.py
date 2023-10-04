@@ -13,7 +13,9 @@ def get_categories():
     try:
         categories_ = [category.format() for category in Category.query.all()]
 
-        return json_success({"categories": categories_})
+        return json_success(
+            {"categories": categories_, "total_categories": len(categories_)}
+        )
 
     except Exception as ex:
         print("error", str(ex))

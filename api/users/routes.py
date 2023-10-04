@@ -30,7 +30,6 @@ def register_users_and_assign_roles():
         user = User(username=username, email=email, password=password)
         user.password = bcrypt.generate_password_hash(user.password).decode("utf-8")
 
-        # Add the user to the session before assigning roles
         db.session.add(user)
 
         if data.get("is_staff"):
@@ -64,6 +63,7 @@ def login_user():
         username = request.json.get("username", None)
         password = request.json.get("password", None)
 
+        # confirming user exists before authentication
         user = User.query.filter_by(username=username).one_or_none()
         if not user:
             response_data = {"message": "Invalid username or password"}
@@ -90,15 +90,3 @@ def protected():
         id=current_user.id,
         username=current_user.username,
     )
-
-
-# @users.route("/users", methods=["GET"])
-# def get_users():
-#     try:
-#         users = [u.format() for u in User.query.all()]
-#
-#         return jsonify({"users": users})
-#
-#     except Exception as ex:
-#         print("error", str(ex))
-#         return json_failure({"exception": str(ex)})
