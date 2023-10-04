@@ -2,13 +2,15 @@ from flask import Blueprint, jsonify, request
 from api.models import Question
 from api.utils import paginator
 from api.utils import json_failure, json_success, json_404
+from flask_jwt_extended import jwt_required
 
 
 questions = Blueprint("questions", __name__)
 
 
 @questions.route("/questions", methods=["GET"])
-def get_questions(current_user):
+@jwt_required()
+def get_questions():
     try:
         questions_ = Question.query.all()
         paginated_questions = paginator(request, questions_)
@@ -22,12 +24,9 @@ def get_questions(current_user):
 
 
 @questions.route("/questions", methods=["POST"])
-def add_question_or_search_question(current_user):
+@jwt_required()
+def add_question_or_search_question():
     try:
-        """
-        - Endpoint to add a new question and to retrieve questions based on a search term.
-        - request.get_json() : Parses the incoming JSON request data and returns it.
-        """
         data = request.get_json()
         search_term = data.get("searchTerm", None)
 
@@ -70,7 +69,7 @@ def add_question_or_search_question(current_user):
 
 
 @questions.route("/questions/<int:question_id>", methods=["DELETE"])
-def delete_question(current_user, question_id):
+def delete_question(question_id):
     try:
         question = Question.query.get(question_id)
         if not question:
@@ -89,7 +88,7 @@ def delete_question(current_user, question_id):
 
 
 @questions.route("/questions/<int:question_id>", methods=["GET"])
-def retrieve_question(current_user, question_id):
+def retrieve_question(question_id):
     try:
         question = Question.query.get(question_id)
         if not question:
@@ -106,7 +105,7 @@ def retrieve_question(current_user, question_id):
 
 
 @questions.route("/questions/<int:question_id>", methods=["PUT"])
-def update_question(current_user, question_id):
+def update_question(question_id):
     try:
         question = Question.query.get(question_id)
 

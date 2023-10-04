@@ -6,6 +6,7 @@ from flask_jwt_extended import (
     create_access_token,
     jwt_required,
     current_user,
+    create_refresh_token,
 )
 
 users = Blueprint("users", __name__)
@@ -47,7 +48,10 @@ def register_users_and_assign_roles():
 
         access_token = create_access_token(identity=user)
 
-        return jsonify({"user": serialized_user, "access_token": access_token}), 201
+        return (
+            jsonify({"user": serialized_user, "access_token": access_token}),
+            201,
+        )
 
     except Exception as ex:
         db.session.rollback()
@@ -71,14 +75,15 @@ def login_user():
             return make_response(jsonify(response_data), 400)
 
         access_token = create_access_token(identity=user)
+        refresh_token = create_refresh_token(identity=user)
 
-        return jsonify(access_token=access_token)
+        return jsonify({"access_token": access_token, "refresh_token": refresh_token})
 
     except Exception as ex:
         return json_failure({"exception": str(ex)})
 
 
-@users.route("/who_am_i", methods=["GET"])
+@users.route("/protected", methods=["GET"])
 @jwt_required()
 def protected():
     return jsonify(
@@ -87,16 +92,13 @@ def protected():
     )
 
 
-@users.route("/users/<int:user_id>", methods=["DELETE"])
-def delete(user_id):
-    try:
-        user = User.query.get(user_id)
-
-        user.delete()
-
-        user_ = user.format()
-
-        return jsonify({"role": user_})
-
-    except Exception as ex:
-        return json_failure({"exception": str(ex)})
+# @users.route("/users", methods=["GET"])
+# def get_users():
+#     try:
+#         users = [u.format() for u in User.query.all()]
+#
+#         return jsonify({"users": users})
+#
+#     except Exception as ex:
+#         print("error", str(ex))
+#         return json_failure({"exception": str(ex)})

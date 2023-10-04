@@ -1,8 +1,7 @@
 import datetime
 from pathlib import Path
-
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -21,3 +20,22 @@ class Config:
 
     SQLALCHEMY_DATABASE_URI = url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
+class DevelopmentConfig(Config):
+    DEBUG = True
+
+
+class TestingConfig(Config):
+    basedir_ = Path.cwd()
+    DATABASE_ = "test.db"
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = f"sqlite:///{Path(basedir_).joinpath(DATABASE_)}"
+    JWT_SECRET_KEY = "foobarbaz"
+    JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(seconds=1)
+
+
+config_by_name = {
+    "development": DevelopmentConfig,
+    "testing": TestingConfig,
+}

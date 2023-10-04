@@ -1,12 +1,12 @@
 from flask import Flask, jsonify
-from api.config import Config
+from api.config import config_by_name
 from api.extensions import db, migrate, jwt, bcrypt
 from flask_cors import CORS
 
 
-def create_app():
+def create_app(config_name="development"):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config_by_name[config_name])
 
     db.init_app(app)
     migrate.init_app(app, db)
