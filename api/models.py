@@ -3,16 +3,10 @@ from api import db, jwt
 
 @jwt.user_identity_loader
 def user_identity_lookup(user):
-    # Assuming 'user' is the username
     user_object = User.query.filter_by(username=user).first()
     if user_object:
         return user_object.id
-    return None  # Return None if the user doesn't exist
-
-
-# @jwt.user_identity_loader
-# def user_identity_lookup(user):
-#     return user.id
+    return None
 
 
 @jwt.user_lookup_loader

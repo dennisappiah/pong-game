@@ -69,6 +69,7 @@ def add_question_or_search_question():
 
 
 @questions.route("/questions/<int:question_id>", methods=["DELETE"])
+@jwt_required()
 def delete_question(question_id):
     try:
         question = Question.query.get(question_id)
@@ -88,6 +89,7 @@ def delete_question(question_id):
 
 
 @questions.route("/questions/<int:question_id>", methods=["GET"])
+@jwt_required()
 def retrieve_question(question_id):
     try:
         question = Question.query.get(question_id)
@@ -105,6 +107,7 @@ def retrieve_question(question_id):
 
 
 @questions.route("/questions/<int:question_id>", methods=["PUT"])
+@jwt_required()
 def update_question(question_id):
     try:
         question = Question.query.get(question_id)

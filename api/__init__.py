@@ -49,7 +49,7 @@ def create_app(config_name="development"):
     def un_processable(error):
         return (
             jsonify({"error": 422, "message": "Your request was un-processable."}),
-            404,
+            422,
         )
 
     @app.errorhandler(500)
