@@ -1,8 +1,9 @@
-from flask import jsonify, current_app
-import secrets
 import os
-from PIL import Image
+from flask import jsonify, current_app
 from flask_mail import Message
+from werkzeug.utils import secure_filename
+from PIL import Image
+
 
 from api import mail
 
@@ -18,24 +19,26 @@ def paginator(request, data):
     return formatted_data[start:end]
 
 
-def save_image(image_path):
-    random_hex = secrets.token_hex(8)
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
-    _, f_ext = os.path.splitext(image_path.filename)
 
-    new_image_name = random_hex + f_ext
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-    output_folder_path = os.path.join(
-        current_app.root_path, "static/profile_pics", new_image_name
-    )
 
-    output_size = (200, 200)
-
-    i = Image.open(image_path)
-    i.thumbnail(output_size)
-    i.save(output_folder_path)
-
-    return new_image_name
+def save_image(image_file):
+    try:
+        new_image_name = secure_filename(image_file.filename)
+        output_folder_path = os.path.join(
+            current_app.root_path, "static/profile_pics", new_image_name
+        )
+        output_size = (200, 200)
+        i = Image.open(image_file)
+        i.thumbnail(output_size)
+        i.save(output_folder_path)
+        return new_image_name
+    except Exception as e:
+        return str(e)
 
 
 def send_email(user, subject, sender, body):

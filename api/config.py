@@ -11,10 +11,12 @@ class Config:
     DATABASE = "flaskr.db"
     TESTING = False
     SECRET_KEY = os.getenv("SECRET_KEY")
+    MAX_CONTENT_LENGTH = 8 * 1024 * 1024  # 8MB
     url = os.getenv("DATABASE_URL", f"sqlite:///{Path(basedir).joinpath(DATABASE)}")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(minutes=20)
-    MAIL_SERVER = "smtp.googlemail.com"
+    JWT_IDENTITY_CLAIM = "sub"
+    MAIL_SERVER = os.getenv("MAIL_SERVER")
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get("EMAIL_USER")

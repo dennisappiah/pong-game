@@ -1,24 +1,21 @@
-import json
-from datetime import datetime, timezone, timedelta
-
-from flask import Blueprint, request, jsonify, make_response
 from api.models import User, Role
 from api import bcrypt, db
 from api.utils import json_failure
+from api.utils import save_image, allowed_file
+from flask import Blueprint, request, jsonify, make_response
 from flask_jwt_extended import (
     create_access_token,
     jwt_required,
     current_user,
-    get_jwt,
-    get_jwt_identity,
     unset_jwt_cookies,
+    set_access_cookies,
 )
 
 users = Blueprint("users", __name__)
 
 
 @users.route("/users/register", methods=["POST"])
-def register_users_and_assign_roles():
+def register_user_and_assign_roles():
     try:
         data = request.get_json()
 
@@ -50,16 +47,11 @@ def register_users_and_assign_roles():
 
         serialized_user = user.format()
 
-        access_token = create_access_token(identity=user)
-
-        return (
-            jsonify({"user": serialized_user, "access_token": access_token}),
-            201,
-        )
+        return make_response(jsonify(user=serialized_user), 201)
 
     except Exception as ex:
         db.session.rollback()
-        return json_failure({"exception": str(ex)})
+        return jsonify({"exception": str(ex)})
 
 
 @users.route("/users/login", methods=["POST"])
@@ -79,38 +71,49 @@ def login_user():
             response_data = {"message": "Invalid username or password"}
             return make_response(jsonify(response_data), 400)
 
+        response = jsonify({"msg": "login successful"})
         access_token = create_access_token(identity=user)
 
-        return jsonify({"access_token": access_token})
+        # assign cookie-session-id
+        set_access_cookies(response, access_token)
+
+        return response
 
     except Exception as ex:
         return json_failure({"exception": str(ex)})
 
 
-@users.after_request
-def refresh_expiring_jwts(response):
-    try:
-        exp_timestamp = get_jwt()["exp"]
-        now = datetime.now(timezone.utc)
-        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
-        if target_timestamp > exp_timestamp:
-            access_token = create_access_token(identity=get_jwt_identity())
-            data = response.get_json()
-            if type(data) is dict:
-                data["access_token"] = access_token
-                response.data = json.dumps(data)
-        return response
-    except (RuntimeError, KeyError):
-        return response
-
-
-@users.route("/me")
+@users.route("/me", methods=["GET", "POST"])
 @jwt_required()
-def protected():
+def retrieve_and_update_current_user():
     if request.method == "GET":
-        return jsonify(id=current_user.id, username=current_user.username)
-    if request.method == "PUT":
-        pass
+        return jsonify(
+            id=current_user.id,
+            username=current_user.username,
+            email=current_user.email,
+            image_file=current_user.file,
+        )
+
+    elif request.method == "POST":
+        username = request.form.get("username")
+        email = request.form.get("email")
+        image_file_to_upload = request.files["file"]
+
+        if username:
+            current_user.username = username
+        if email:
+            current_user.email = email
+        if image_file_to_upload and allowed_file(image_file_to_upload.filename):
+            optimized_image = save_image(image_file_to_upload)
+            current_user.file = optimized_image
+
+        db.session.commit()
+
+        response_data = dict(
+            message="profile updated successfully", file=optimized_image
+        )
+
+        return jsonify(response_data)
 
 
 @users.route("/users/logout", methods=["POST"])
@@ -122,5 +125,3 @@ def logout():
 
 # account verification link (by email)
 # forget-password & reset-password (by email)
-# update profile (update image)
-#

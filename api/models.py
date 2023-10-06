@@ -5,7 +5,7 @@ from itsdangerous.url_safe import URLSafeTimedSerializer
 
 @jwt.user_identity_loader
 def user_identity_lookup(user):
-    return user.id
+    return user.id if isinstance(user, User) else None
 
 
 @jwt.user_lookup_loader
@@ -106,7 +106,7 @@ class User(db.Model):
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(20), nullable=False)
     password = db.Column(db.String(60), nullable=False)
-    image_file = db.Column(db.String(20), nullable=False, default="default.jpg")
+    file = db.Column(db.String(20), nullable=False, default="default.jpg")
     is_staff = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
     is_super_admin = db.Column(db.Boolean, default=False)
