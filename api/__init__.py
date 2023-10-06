@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 from api.config import config_by_name
-from api.extensions import db, migrate, jwt, bcrypt
+from api.extensions import db, migrate, jwt, bcrypt, mail
 from flask_cors import CORS
 
 
@@ -12,6 +12,7 @@ def create_app(config_name="development"):
     migrate.init_app(app, db)
     jwt.init_app(app)
     bcrypt.init_app(app)
+    mail.init_app(app)
 
     from api.questions.routes import questions
     from api.categories.routes import categories

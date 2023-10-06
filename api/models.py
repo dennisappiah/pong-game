@@ -1,12 +1,11 @@
+from flask import current_app
 from api import db, jwt
+from itsdangerous.url_safe import URLSafeTimedSerializer
 
 
 @jwt.user_identity_loader
 def user_identity_lookup(user):
-    user_object = User.query.filter_by(username=user).first()
-    if user_object:
-        return user_object.id
-    return None
+    return user.id
 
 
 @jwt.user_lookup_loader
@@ -105,7 +104,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
-    email = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(20), nullable=False)
     password = db.Column(db.String(60), nullable=False)
     image_file = db.Column(db.String(20), nullable=False, default="default.jpg")
     is_staff = db.Column(db.Boolean, default=False)
@@ -144,6 +143,21 @@ class User(db.Model):
             if permission_slug in [p.slug for p in role.permissions]:
                 return True
         return False
+
+    def get_reset_token(self, expires_sec=1800):
+        s = URLSafeTimedSerializer(current_app.config["SECRET_KEY"], expires_sec)
+        # serialized
+        return s.dumps({"user_id": self.id}).decode("utf-8")
+
+    @staticmethod
+    def verify_reset_token(token):
+        s = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        try:
+            # deserializing
+            user_id = s.loads(token)["user_id"]
+        except:
+            return None
+        return User.query.get(user_id)
 
 
 class Role(db.Model):
@@ -234,3 +248,10 @@ class RolePermission(db.Model):
         db.Integer, db.ForeignKey("permissions.id"), primary_key=True
     )
     role_id = db.Column(db.Integer, db.ForeignKey("roles.id"), primary_key=True)
+
+
+class File(db.Model):
+    __tablename__ = "files"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255))

@@ -1,3 +1,6 @@
+import json
+from datetime import datetime, timezone, timedelta
+
 from flask import Blueprint, request, jsonify, make_response
 from api.models import User, Role
 from api import bcrypt, db
@@ -6,7 +9,9 @@ from flask_jwt_extended import (
     create_access_token,
     jwt_required,
     current_user,
-    create_refresh_token,
+    get_jwt,
+    get_jwt_identity,
+    unset_jwt_cookies,
 )
 
 users = Blueprint("users", __name__)
@@ -64,7 +69,7 @@ def login_user():
         password = request.json.get("password", None)
 
         # confirming user exists before authentication
-        user = User.query.filter_by(username=username).one_or_none()
+        user = User.query.filter_by(username=username).first()
         if not user:
             response_data = {"message": "Invalid username or password"}
             return make_response(jsonify(response_data), 400)
@@ -75,18 +80,47 @@ def login_user():
             return make_response(jsonify(response_data), 400)
 
         access_token = create_access_token(identity=user)
-        refresh_token = create_refresh_token(identity=user)
 
-        return jsonify({"access_token": access_token, "refresh_token": refresh_token})
+        return jsonify({"access_token": access_token})
 
     except Exception as ex:
         return json_failure({"exception": str(ex)})
 
 
-@users.route("/protected", methods=["GET"])
+@users.after_request
+def refresh_expiring_jwts(response):
+    try:
+        exp_timestamp = get_jwt()["exp"]
+        now = datetime.now(timezone.utc)
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+        if target_timestamp > exp_timestamp:
+            access_token = create_access_token(identity=get_jwt_identity())
+            data = response.get_json()
+            if type(data) is dict:
+                data["access_token"] = access_token
+                response.data = json.dumps(data)
+        return response
+    except (RuntimeError, KeyError):
+        return response
+
+
+@users.route("/me")
 @jwt_required()
 def protected():
-    return jsonify(
-        id=current_user.id,
-        username=current_user.username,
-    )
+    if request.method == "GET":
+        return jsonify(id=current_user.id, username=current_user.username)
+    if request.method == "PUT":
+        pass
+
+
+@users.route("/users/logout", methods=["POST"])
+def logout():
+    response = jsonify({"msg": "logout successful"})
+    unset_jwt_cookies(response)
+    return response
+
+
+# account verification link (by email)
+# forget-password & reset-password (by email)
+# update profile (update image)
+#

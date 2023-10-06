@@ -53,7 +53,7 @@ def test_user(app):
 
 @pytest.fixture(scope="module")
 def authenticated_client(client, test_user):
-    access_token = create_access_token(identity=test_user.username)
+    access_token = create_access_token(identity=test_user)
 
     headers = {
         "Authorization": f"Bearer {access_token}",

@@ -17,10 +17,11 @@ psycopg2 = "*"
 itsdangerous = "*"
 bcrypt = "*"
 flask-bcrypt = "*"
+sqlalchemy-file = "*"
+flask-mail = "*"
 
 [dev-packages]
 pytest = "*"
-pytest-flask = "*"
 
 [requires]
 python_version = "3.9"
