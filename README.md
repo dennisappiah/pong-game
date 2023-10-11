@@ -14,14 +14,14 @@ git clone https://github.com/dennisappiah/pong-game-api.git
 - INSTALL DEPENDENCIES USING PACKAGE MANAGER
 
 ```bash
-cd dennify-store-api
+cd pong-game-api
 pipenv install
 pipenv shell
 ```
 - INSTALL DEPENDENCIES DOCKER-COMPOSE
 - 
 ```bash
-cd dennify-store-api
+cd pong-game-api
 run "docker-compose" build to build application image
 run "docker-compose up -d" to start application
 ```
